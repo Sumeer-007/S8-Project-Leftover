@@ -1,0 +1,19 @@
+# Local PostgreSQL for development
+# Run: docker compose up -d
+# Then: DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/leftoverlink
+version: "3.8"
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: leftoverlink-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: leftoverlink
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
