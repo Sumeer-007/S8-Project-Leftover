@@ -1,4 +1,5 @@
-import { render, screen } from "@testing-library/react";
+import { render } from "@testing-library/react";
+import { screen } from "@testing-library/dom";
 import { MemoryRouter } from "react-router-dom";
 import App from "@/App";
 
@@ -6,14 +7,12 @@ function renderWithRouter(initialEntries: string[] = ["/"]) {
   return render(
     <MemoryRouter initialEntries={initialEntries}>
       <App />
-    </MemoryRouter>
+    </MemoryRouter>,
   );
 }
 
 test("unauthenticated user at root is redirected to login", () => {
   window.localStorage.clear();
   renderWithRouter(["/"]);
-  expect(
-    screen.getByText(/welcome back/i)
-  ).toBeInTheDocument();
+  expect(screen.getByText(/welcome back/i)).toBeInTheDocument();
 });
