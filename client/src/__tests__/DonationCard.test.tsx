@@ -15,9 +15,9 @@ const baseDonation: Donation = {
   pickupLocation: { label: "Test Location", address: "1 Test St", lat: 0, lng: 0 },
   notes: "",
   dietaryTags: [],
-  assignedVolunteer: null,
-  deliveryRecipient: null,
-  feedback: null,
+  assignedVolunteer: undefined,
+  deliveryRecipient: undefined,
+  feedback: undefined,
 };
 
 test("renders donation card with category and servings", () => {

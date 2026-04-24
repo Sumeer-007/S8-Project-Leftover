@@ -15,14 +15,26 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-function getDonorName(donor: { fullName?: string; full_name?: string } | null): string {
+function getDonorName(
+  donor: { fullName?: string; full_name?: string } | null | undefined,
+): string {
   if (!donor) return "";
-  return (donor as { fullName?: string; full_name?: string }).fullName ?? (donor as { full_name?: string }).full_name ?? "";
+  return (
+    (donor as { fullName?: string; full_name?: string }).fullName ??
+    (donor as { full_name?: string }).full_name ??
+    ""
+  );
 }
 
-function getVolunteerName(vol: { fullName?: string; full_name?: string } | null): string {
+function getVolunteerName(
+  vol: { fullName?: string; full_name?: string } | null | undefined,
+): string {
   if (!vol) return "";
-  return (vol as { fullName?: string; full_name?: string }).fullName ?? (vol as { full_name?: string }).full_name ?? "";
+  return (
+    (vol as { fullName?: string; full_name?: string }).fullName ??
+    (vol as { full_name?: string }).full_name ??
+    ""
+  );
 }
 
 export default function Profile() {
@@ -32,13 +44,20 @@ export default function Profile() {
   if (!user) {
     return (
       <div className="space-y-6">
-        <GradientHeader title="Profile" subtitle="Sign in to view your account" />
+        <GradientHeader
+          title="Profile"
+          subtitle="Sign in to view your account"
+        />
         <div className="rounded-2xl bg-white p-10 text-center shadow-lg shadow-black/5 ring-1 ring-black/5">
           <div className="mb-4 inline-flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 text-4xl">
             👤
           </div>
-          <p className="text-base font-semibold text-foreground">Not signed in</p>
-          <p className="mt-2 text-sm text-muted-foreground">Create an account or log in to continue.</p>
+          <p className="text-base font-semibold text-foreground">
+            Not signed in
+          </p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Create an account or log in to continue.
+          </p>
           <Button
             className="mt-6 rounded-xl font-semibold shadow-lg shadow-primary/20"
             onClick={() => nav("/auth/login")}
@@ -51,13 +70,20 @@ export default function Profile() {
   }
 
   const isDonor = user.role === "DONOR";
-  const displayName = isDonor ? getDonorName(user.donor) : getVolunteerName(user.volunteer);
-  const initials = displayName
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2) || user.username[0]?.toUpperCase() || "?";
+  const donor = isDonor ? user.donor : undefined;
+  const volunteer = user.role === "VOLUNTEER" ? user.volunteer : undefined;
+  const displayName = isDonor
+    ? getDonorName(donor)
+    : getVolunteerName(volunteer);
+  const initials =
+    displayName
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2) ||
+    user.username[0]?.toUpperCase() ||
+    "?";
 
   return (
     <div className="space-y-6">
@@ -71,11 +97,15 @@ export default function Profile() {
               {initials}
             </div>
             <div>
-              <h2 className="text-xl font-bold tracking-tight text-foreground">{displayName || user.username}</h2>
+              <h2 className="text-xl font-bold tracking-tight text-foreground">
+                {displayName || user.username}
+              </h2>
               <span
                 className={cn(
                   "mt-1 inline-block rounded-full px-3 py-0.5 text-xs font-semibold",
-                  isDonor ? "bg-primary/15 text-primary" : "bg-emerald-100 text-emerald-700"
+                  isDonor
+                    ? "bg-primary/15 text-primary"
+                    : "bg-emerald-100 text-emerald-700",
                 )}
               >
                 {isDonor ? "Donor" : "Volunteer"}
@@ -85,39 +115,52 @@ export default function Profile() {
         </div>
 
         <div className="divide-y divide-stone-100 px-6 py-2">
-          <InfoRow icon={Calendar} label="Joined" value={new Date(user.createdAt).toLocaleDateString()} />
-          {isDonor && user.donor ? (
+          <InfoRow
+            icon={Calendar}
+            label="Joined"
+            value={new Date(user.createdAt).toLocaleDateString()}
+          />
+          {isDonor && donor ? (
             <>
               <InfoRow
                 icon={User}
                 label="Full name"
-                value={getDonorName(user.donor) || "—"}
+                value={getDonorName(donor) || "—"}
               />
-              <InfoRow icon={Phone} label="Phone" value={(user.donor as { phone?: string }).phone || "—"} />
-              {(user.donor as { organization?: string }).organization && (
+              <InfoRow
+                icon={Phone}
+                label="Phone"
+                value={(donor as { phone?: string }).phone || "—"}
+              />
+              {(donor as { organization?: string }).organization && (
                 <InfoRow
                   icon={Building2}
                   label="Organization"
-                  value={(user.donor as { organization?: string }).organization!}
+                  value={(donor as { organization?: string }).organization!}
                 />
               )}
               <InfoRow
                 icon={Shield}
                 label="Verification"
-                value={(user.donor as { aadhaarLast4?: string }).aadhaarLast4 ? `Aadhaar •••• ${(user.donor as { aadhaarLast4?: string }).aadhaarLast4}` : "Not verified"}
+                value={
+                  (donor as { aadhaarLast4?: string }).aadhaarLast4
+                    ? `Aadhaar •••• ${(donor as { aadhaarLast4?: string }).aadhaarLast4}`
+                    : "Not verified"
+                }
               />
-              {((user.donor as { idFrontImage?: string }).idFrontImage || (user.donor as { idBackImage?: string }).idBackImage) && (
+              {((donor as { idFrontImage?: string }).idFrontImage ||
+                (donor as { idBackImage?: string }).idBackImage) && (
                 <div className="flex gap-3 py-3">
-                  {(user.donor as { idFrontImage?: string }).idFrontImage && (
+                  {(donor as { idFrontImage?: string }).idFrontImage && (
                     <img
-                      src={(user.donor as { idFrontImage?: string }).idFrontImage}
+                      src={(donor as { idFrontImage?: string }).idFrontImage}
                       alt="ID front"
                       className="h-24 rounded-xl border object-cover shadow-sm"
                     />
                   )}
-                  {(user.donor as { idBackImage?: string }).idBackImage && (
+                  {(donor as { idBackImage?: string }).idBackImage && (
                     <img
-                      src={(user.donor as { idBackImage?: string }).idBackImage}
+                      src={(donor as { idBackImage?: string }).idBackImage}
                       alt="ID back"
                       className="h-24 rounded-xl border object-cover shadow-sm"
                     />
@@ -126,21 +169,33 @@ export default function Profile() {
               )}
             </>
           ) : (
-            user.volunteer && (
+            volunteer && (
               <>
                 <InfoRow
                   icon={User}
                   label="Full name"
-                  value={getVolunteerName(user.volunteer) || "—"}
+                  value={getVolunteerName(volunteer) || "—"}
                 />
-                <InfoRow icon={Phone} label="Phone" value={(user.volunteer as { phone?: string }).phone || "—"} />
-                {(user.volunteer as { city?: string }).city && (
-                  <InfoRow icon={MapPin} label="City" value={(user.volunteer as { city?: string }).city!} />
+                <InfoRow
+                  icon={Phone}
+                  label="Phone"
+                  value={(volunteer as { phone?: string }).phone || "—"}
+                />
+                {(volunteer as { city?: string }).city && (
+                  <InfoRow
+                    icon={MapPin}
+                    label="City"
+                    value={(volunteer as { city?: string }).city!}
+                  />
                 )}
                 <InfoRow
                   icon={Car}
                   label="Vehicle"
-                  value={(user.volunteer as { hasVehicle?: boolean }).hasVehicle ? "Yes" : "No"}
+                  value={
+                    (volunteer as { hasVehicle?: boolean }).hasVehicle
+                      ? "Yes"
+                      : "No"
+                  }
                 />
               </>
             )
@@ -159,7 +214,9 @@ export default function Profile() {
           </div>
           <div className="text-left">
             <p className="font-semibold text-foreground">Settings</p>
-            <p className="text-sm text-muted-foreground">Account, data & preferences</p>
+            <p className="text-sm text-muted-foreground">
+              Account, data & preferences
+            </p>
           </div>
         </div>
         <ChevronRight className="h-5 w-5 text-muted-foreground" />
