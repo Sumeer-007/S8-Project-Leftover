@@ -2,7 +2,10 @@ import { render } from "@testing-library/react";
 import { screen } from "@testing-library/dom";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { vi } from "vitest";
-import FeedbackPage from "@/screens/feedback/FeedbackPage";
+import FeedbackPage from "../screens/feedback/FeedbackPage";
+import { test } from "vitest";
+import { expect } from "vitest";
+import React from "react";
 
 vi.mock("@/lib/api", () => ({
   api: {
@@ -23,11 +26,10 @@ test("renders feedback page with donor and volunteer names", async () => {
       <Routes>
         <Route path="/feedback/:token" element={<FeedbackPage />} />
       </Routes>
-    </MemoryRouter>
+    </MemoryRouter>,
   );
 
-  expect(await screen.findByText(/share your feedback/i)).toBeInTheDocument();
-  expect(await screen.findByText(/donor a/i)).toBeInTheDocument();
-  expect(await screen.findByText(/volunteer b/i)).toBeInTheDocument();
+  expect(await screen.findByText(/share your feedback/i)).toBeDefined();
+  expect(await screen.findByText(/donor a/i)).toBeDefined();
+  expect(await screen.findByText(/volunteer b/i)).toBeDefined();
 });
-
