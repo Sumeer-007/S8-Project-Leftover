@@ -1,0 +1,36 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: leftoverlink-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: leftoverlink
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  server:
+    build:
+      context: ./server
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/leftoverlink
+    depends_on:
+      - postgres
+
+  nginx:
+    build:
+      context: ./client
+      dockerfile: ../nginx.Dockerfile
+    ports:
+      - "1234:80"
+    depends_on:
+      - server
+
+volumes:
+  pgdata:
