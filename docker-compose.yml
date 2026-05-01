@@ -23,6 +23,17 @@ services:
     depends_on:
       - postgres
 
+  admin-server:
+    build:
+      context: ./Admin_Dashboard/server
+    ports:
+      - "8001:8001"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/leftoverlink
+      - ADMIN_CORS_ORIGINS=*
+    depends_on:
+      - postgres
+
   client:
     build:
       context: ./client
@@ -39,11 +50,11 @@ services:
       context: ./Admin_Dashboard
       dockerfile: ../admin.Dockerfile
     environment:
-      - VITE_ADMIN_API_BASE=http://13.233.84.240:8000
+      - VITE_ADMIN_API_BASE=http://13.233.84.240:8001
     ports:
       - "8080:80"
     depends_on:
-      - server
+      - admin-server
 
 volumes:
   pgdata:
