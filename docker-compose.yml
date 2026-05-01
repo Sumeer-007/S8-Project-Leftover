@@ -28,7 +28,7 @@ services:
       context: ./client
       dockerfile: ../nginx.Dockerfile
     ports:
-      - "1234:80"
+      - "80:80"
     depends_on:
       - server
 
