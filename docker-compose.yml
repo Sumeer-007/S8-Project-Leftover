@@ -27,6 +27,8 @@ services:
     build:
       context: ./client
       dockerfile: ../nginx.Dockerfile
+    environment:
+      - VITE_API_BASE=http://13.233.84.240:8000
     ports:
       - "80:80"
     depends_on:
