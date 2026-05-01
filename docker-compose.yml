@@ -23,14 +23,25 @@ services:
     depends_on:
       - postgres
 
-  nginx:
+  client:
     build:
       context: ./client
-      dockerfile: ../nginx.Dockerfile
+      dockerfile: ../client.Dockerfile
     environment:
       - VITE_API_BASE=http://13.233.84.240:8000
     ports:
       - "80:80"
+    depends_on:
+      - server
+
+  admin:
+    build:
+      context: ./Admin_Dashboard
+      dockerfile: ../admin.Dockerfile
+    environment:
+      - VITE_ADMIN_API_BASE=http://13.233.84.240:8000
+    ports:
+      - "8080:80"
     depends_on:
       - server
 
