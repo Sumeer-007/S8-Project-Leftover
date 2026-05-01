@@ -33,18 +33,9 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS: main app origins + Admin app (built/deployed separately; set ADMIN_CORS_ORIGINS in production)
-_cors_list = [o.strip() for o in settings.cors_origins.split(",") if o.strip()]
-# Local dev: allow Admin on 5174; production: add ADMIN_CORS_ORIGINS e.g. https://admin.yourdomain.com
-_admin_origins = ["http://localhost:5174", "http://127.0.0.1:5174", "http://localhost:5175", "http://127.0.0.1:5175"]
-if settings.admin_cors_origins:
-    _admin_origins.extend(o.strip() for o in settings.admin_cors_origins.split(",") if o.strip())
-for origin in _admin_origins:
-    if origin and origin not in _cors_list:
-        _cors_list.append(origin)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=_cors_list,
+    allow_origins=settings.cors_origins.split(","),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
