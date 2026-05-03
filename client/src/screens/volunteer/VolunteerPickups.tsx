@@ -17,7 +17,9 @@ export default function VolunteerPickups() {
   const [q, setQ] = useState("");
   const [list, setList] = useState<Donation[]>([]);
   const [loading, setLoading] = useState(true);
-  const [acceptingDonationId, setAcceptingDonationId] = useState<string | null>(null);
+  const [acceptingDonationId, setAcceptingDonationId] = useState<string | null>(
+    null,
+  );
   const [actionError, setActionError] = useState<string | null>(null);
 
   async function load() {
@@ -35,7 +37,7 @@ export default function VolunteerPickups() {
     <div className="space-y-4">
       <GradientHeader
         title="Pickups"
-        subtitle="Only Pending donations show here (demo)."
+        subtitle="Only Pending donations show here."
       />
 
       <div className="relative">
@@ -43,18 +45,24 @@ export default function VolunteerPickups() {
         <Input
           className="h-12 rounded-2xl border-0 bg-white pl-11 shadow-md shadow-black/5 focus-visible:ring-2 focus-visible:ring-primary/30"
           placeholder="Search area or category..."
-        value={q}
-        onChange={(e) => setQ(e.target.value)}
-      />
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+        />
       </div>
 
       {loading ? (
-        <p className="py-8 text-center text-sm text-muted-foreground">Loading…</p>
+        <p className="py-8 text-center text-sm text-muted-foreground">
+          Loading…
+        </p>
       ) : list.length === 0 ? (
         <div className="rounded-2xl bg-white p-10 text-center shadow-lg shadow-black/5 ring-1 ring-black/5">
           <span className="mb-4 block text-6xl">🔍</span>
-          <p className="text-base font-semibold text-foreground">No pickups found</p>
-          <p className="mt-2 text-sm text-muted-foreground">Try a different search.</p>
+          <p className="text-base font-semibold text-foreground">
+            No pickups found
+          </p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Try a different search.
+          </p>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
@@ -71,14 +79,17 @@ export default function VolunteerPickups() {
                     const user = getCurrentUserSync();
                     if (!user) throw new Error("Please login again and retry.");
                     if (user.role !== "VOLUNTEER") {
-                      throw new Error("Only volunteer accounts can accept pickups.");
+                      throw new Error(
+                        "Only volunteer accounts can accept pickups.",
+                      );
                     }
                     const vol = user.volunteer as {
                       fullName?: string;
                       full_name?: string;
                       phone?: string;
                     };
-                    const volName = vol?.fullName ?? vol?.full_name ?? user.username;
+                    const volName =
+                      vol?.fullName ?? vol?.full_name ?? user.username;
                     const volPhone = vol?.phone ?? "";
                     await api.acceptPickup(d.id, {
                       id: user.id,
@@ -107,7 +118,9 @@ export default function VolunteerPickups() {
                   }
                 }}
               >
-                {acceptingDonationId === d.id ? "Accepting..." : "Accept pickup"}
+                {acceptingDonationId === d.id
+                  ? "Accepting..."
+                  : "Accept pickup"}
               </Button>
             </div>
           ))}

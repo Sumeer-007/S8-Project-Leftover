@@ -15,21 +15,7 @@ export default function RoleSelect() {
           Leftover Link
         </div>
         <div className="mt-1 text-sm text-muted-foreground">
-          Donate surplus food • Volunteers pick up & deliver • Demo with dummy
-          data
-        </div>
-
-        <div className="mt-4 flex gap-2">
-          <Button
-            variant="secondary"
-            onClick={() => {
-              api.resetDemo();
-              location.reload();
-            }}
-          >
-            <RotateCcw className="mr-2 h-4 w-4" />
-            Reset demo data
-          </Button>
+          Donate surplus food • Volunteers pick up & deliver data
         </div>
       </div>
 

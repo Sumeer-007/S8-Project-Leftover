@@ -551,7 +551,7 @@ export default function Signup() {
       </div>
 
       <div className="mt-2 pb-4 text-center text-xs text-muted-foreground">
-        Role-based registration • Demo auth (localStorage)
+        Role-based registration
       </div>
     </div>
   );

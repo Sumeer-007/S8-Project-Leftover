@@ -74,12 +74,18 @@ export function LocationPicker({
       const rev = await reverseGeocode(lat, lng);
       const address =
         rev?.display_name ?? `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+      const label =
+        typeof rev?.name === "string" && rev.name.trim().length > 0
+          ? rev.name
+          : typeof rev?.display_name === "string" && rev.display_name.trim().length > 0
+          ? rev.display_name.split(",")[0]
+          : value.label || "Picked location";
       onChange({
         ...value,
         lat,
         lng,
         address,
-        label: value.label || "Picked location",
+        label,
       });
     } catch (e: any) {
       //   toast({

@@ -45,9 +45,10 @@ export default function Login() {
         return;
       }
       navigator.geolocation.getCurrentPosition(
-        (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        (pos) =>
+          resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
         () => resolve(null),
-        { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 }
+        { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 },
       );
     });
 
@@ -133,17 +134,6 @@ export default function Login() {
                   Remember username
                 </div>
               </div>
-
-              <button
-                type="button"
-                className="text-sm text-muted-foreground hover:underline"
-                onClick={() => {
-                  // demo only
-                  alert("Forgot password flow will be added later.");
-                }}
-              >
-                Forgot password?
-              </button>
             </div>
             <Turnstile
               siteKey={TURNSTILE_SITE_KEY}
@@ -211,33 +201,13 @@ export default function Login() {
             >
               Create account (Sign up)
             </Button>
-
-            <div className="pt-1">
-              <Button
-                variant="ghost"
-                className="w-full rounded-xl text-muted-foreground"
-                onClick={() => {
-                  api.resetDemo();
-                  api.auth.resetAuthDemo();
-                  window.location.href = "/auth/login";
-                }}
-              >
-                <RotateCcw className="h-4 w-4 mr-2" />
-                Reset demo data
-              </Button>
-            </div>
-
-            {/* hint */}
-            <div className="text-center text-xs text-muted-foreground">
-              Demo auth is stored locally (localStorage)
-            </div>
           </CardContent>
         </Card>
       </div>
 
       {/* bottom */}
       <div className="pb-4 text-center text-xs text-muted-foreground">
-        Leftover Link • PWA Demo
+        Leftover Link • PWA
       </div>
     </div>
   );
