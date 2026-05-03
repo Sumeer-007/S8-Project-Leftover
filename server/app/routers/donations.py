@@ -1,6 +1,6 @@
 """Donations API routes."""
 import random
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Annotated, Optional
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query
@@ -78,6 +78,27 @@ def _donation_to_response(
 
 def _generate_donation_id() -> str:
     return f"D-{random.randint(1000, 9999)}"
+
+
+def _parse_pickup_by_iso(value: str) -> datetime:
+    """Parse pickup deadline from ISO-8601; return UTC-naive datetime for TIMESTAMP columns.
+
+    JS sends ``toISOString()`` values (UTC with ``Z``). SQLite accepts tz-aware datetimes;
+    PostgreSQL/asyncpg rejects timezone-aware values bound to naive TIMESTAMP columns,
+    which caused 500s in production only.
+    """
+    s = value.strip()
+    if not s:
+        raise HTTPException(400, "pickupBy is required")
+    if s.endswith("Z") or s.endswith("z"):
+        s = s[:-1] + "+00:00"
+    try:
+        dt = datetime.fromisoformat(s)
+    except ValueError:
+        raise HTTPException(400, "pickupBy must be a valid ISO-8601 datetime") from None
+    if dt.tzinfo is None:
+        return dt
+    return dt.astimezone(timezone.utc).replace(tzinfo=None)
 
 
 def _get_delivery_and_feedback(donation: Donation):
@@ -158,9 +179,7 @@ async def create_donation(
         donor_id=user.id if user and user.role == "DONOR" else None,
         donor_name=payload.donorName,
         donor_phone_masked=payload.donorPhoneMasked,
-        pickup_by=datetime.fromisoformat(payload.pickupBy.replace("Z", "+00:00"))
-        if "T" in payload.pickupBy
-        else datetime.fromisoformat(payload.pickupBy),
+        pickup_by=_parse_pickup_by_iso(payload.pickupBy),
         status="PENDING",
         category=payload.category,
         servings_estimate=payload.servingsEstimate,

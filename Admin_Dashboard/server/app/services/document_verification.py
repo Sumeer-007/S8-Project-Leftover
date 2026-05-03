@@ -145,7 +145,23 @@ def _ocr_text(raw: bytes) -> tuple[str, str]:
         return "", "none"
     try:
         im = Image.open(io.BytesIO(raw))
-        text = pytesseract.image_to_string(im, lang="eng+hin")
+        # Phone photo IDs are often small in pixels — upscale before OCR for better reads.
+        w, h = im.size
+        if w > 0 and w < 1400:
+            scale = min(2.5, 1400 / w)
+            nw, nh = max(1, int(w * scale)), max(1, int(h * scale))
+            try:
+                resample = Image.Resampling.LANCZOS
+            except AttributeError:
+                resample = Image.LANCZOS  # Pillow < 9
+            im = im.resize((nw, nh), resample)
+        gray = im.convert("L")
+        # PSM 6 = uniform block of text; typical for card scans (better than default).
+        text = pytesseract.image_to_string(
+            gray,
+            lang="eng+hin",
+            config="--oem 3 --psm 6",
+        )
         return text or "", "tesseract"
     except Exception:
         return "", "tesseract_error"
@@ -214,12 +230,15 @@ def _score_doc_block(
         u = re.sub(r"\D", "", user_aadhaar_digits.strip())
         if len(u) >= 4:
             last4 = u[-4:]
-            for cand in valid_aadhaar + aadhaar_cands:
-                if cand.endswith(last4):
-                    match_user = True
-                    break
-            if match_user is None:
-                match_user = False
+            cands = valid_aadhaar + aadhaar_cands
+            # Only score mismatch when OCR actually produced a 12-digit candidate; otherwise unknown (OCR miss).
+            if cands:
+                for cand in cands:
+                    if cand.endswith(last4):
+                        match_user = True
+                        break
+                if match_user is None:
+                    match_user = False
     block["aadhaarDigitsMatchUser"] = match_user
 
     issues = list(metrics.get("issues") or [])
@@ -233,7 +252,13 @@ def _score_doc_block(
     elif st == "warn":
         block["status"] = "warn"
     else:
-        block["status"] = "fail" if issues else "warn"
+        # Tesseract often misses English keywords and mis-reads digits on real Aadhaar photos.
+        # Step 1 is advisory — never FAIL a present image solely on weak OCR.
+        # Only FAIL when dimensions are unusably small (thumbnails); blur/size hints stay as warnings.
+        severe = "resolution_too_small" in issues or any(
+            str(i).startswith("invalid_image") for i in issues
+        )
+        block["status"] = "fail" if severe else "warn"
 
     if issues:
         block["issues"] = issues
@@ -352,7 +377,28 @@ def build_verification_report_for_user(user: Any) -> dict[str, Any]:
         cert_raw, _ = _decode_data_url(getattr(user, "donor_food_safety_cert_image", None))
         user_aadhaar = getattr(user, "donor_aadhaar_last4", None)
 
-        aadhaar_kw = ["aadhaar", "uidai", "government", "govt", "unique identification", "dob", "year of birth"]
+        aadhaar_kw = [
+            "aadhaar",
+            "uidai",
+            "government",
+            "govt",
+            "unique identification",
+            "dob",
+            "year of birth",
+            "enrolment",
+            "enrollment",
+            "male",
+            "female",
+            "address",
+            "india",
+            "identification",
+            "authority",
+            "virtual id",
+            "vid",
+            "help",
+            "resident",
+            "भारत",
+        ]
         front = _score_doc_block(
             "aadhaar_front",
             front_raw,
@@ -417,3 +463,4 @@ def build_verification_report_for_user(user: Any) -> dict[str, Any]:
 def verify_user_documents(user: Any) -> dict[str, Any]:
     """Public entry: run analysis and return JSON-serializable report."""
     return build_verification_report_for_user(user)
+ 
