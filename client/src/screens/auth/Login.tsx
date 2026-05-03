@@ -8,7 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { api } from "@/lib/api";
 import { getHomePathFor } from "@/lib/authClient";
 import type { User } from "@/lib/authClient";
-import { Eye, EyeOff, Lock, User2, RotateCcw } from "lucide-react";
+import { Eye, EyeOff, Lock, User2 } from "lucide-react";
 import { Turnstile } from "@marsidev/react-turnstile";
 import { setupUserPushNotifications } from "@/services/pushNotification";
 

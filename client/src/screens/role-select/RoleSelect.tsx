@@ -1,8 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { HandHeart, PackageOpen, ArrowRight, RotateCcw } from "lucide-react";
-import { api } from "@/lib/api";
+import { HandHeart, PackageOpen, ArrowRight } from "lucide-react";
 import { setRole } from "@/lib/sessions";
 
 export default function RoleSelect() {
