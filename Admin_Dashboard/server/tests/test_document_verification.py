@@ -175,7 +175,7 @@ class TestScoreDocBlockWithMockOcr:
         assert r["status"] == "pass"
         assert r.get("aadhaarDigitsMatchUser") is True
 
-    def test_last4_mismatch_warns(self, png_bytes, monkeypatch):
+    def test_last4_mismatch_fails(self, png_bytes, monkeypatch):
         text = f"aadhaar uidai government {VALID_AADHAAR_12}"
 
         def _fake_ocr(_raw):
@@ -188,6 +188,7 @@ class TestScoreDocBlockWithMockOcr:
             aadhaar_keywords=["aadhaar", "uidai", "government", "govt", "unique identification"],
             user_aadhaar_digits="1111",
         )
+        assert r["status"] == "fail"
         assert r.get("aadhaarDigitsMatchUser") is False
         assert "aadhaar_number_mismatch_with_user_form" in r.get("issues", [])
 
@@ -220,6 +221,22 @@ class TestScoreDocBlockWithMockOcr:
         )
         assert r.get("aadhaarDigitsMatchUser") is None
         assert "aadhaar_number_mismatch_with_user_form" not in r.get("issues", [])
+
+    def test_single_keyword_but_substantial_id_like_ocr_passes(self, png_bytes, monkeypatch):
+        # One matched keyword alone is "warn"; many digits ⇒ treat as plausible real ID scan → pass.
+        text = "aadhaar " + ("x" * 44) + "0123456789012345678987654321098765432109876"
+
+        def _fake_ocr(_raw):
+            return text, "tesseract"
+
+        monkeypatch.setattr(dv, "_ocr_text", _fake_ocr)
+        r = dv._score_doc_block(
+            "aadhaar_front",
+            png_bytes,
+            aadhaar_keywords=["aadhaar", "uidai", "government"],
+            user_aadhaar_digits=None,
+        )
+        assert r["status"] == "pass"
 
 
 class TestScoreFssaiWithMockOcr:

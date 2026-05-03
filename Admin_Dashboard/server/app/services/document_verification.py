@@ -55,6 +55,18 @@ _VERHOEFF_P = [
 ]
 
 
+def _digits_in_text(text: str) -> int:
+    return sum(1 for c in text if c.isdigit())
+
+
+def _ocr_substantial_aadhaar_heuristic(text: str) -> bool:
+    """True when OCR has enough readable text+digits typical of an ID/Aadhaar scan (helps PASS when only 1 English keyword matched)."""
+    t = text.strip()
+    if len(t) < 48:
+        return False
+    return _digits_in_text(t) >= 10
+
+
 def _verhoeff_valid_aadhaar(digits: str) -> bool:
     if not re.match(r"^[2-9]\d{11}$", digits):
         return False
@@ -247,18 +259,30 @@ def _score_doc_block(
     if match_user is False:
         issues.append("aadhaar_number_mismatch_with_user_form")
 
-    if st == "pass" or valid_aadhaar:
-        block["status"] = "pass" if (not issues or match_user is not False) else "warn"
-    elif st == "warn":
+    stripped = text.strip()
+    severe_image = "resolution_too_small" in issues or any(str(i).startswith("invalid_image") for i in issues)
+
+    keyword_or_uid_strong = st == "pass" or (
+        st == "warn" and (_ocr_substantial_aadhaar_heuristic(text) or _digits_in_text(stripped) >= 18)
+    )
+    positive_evidence = bool(valid_aadhaar or match_user is True or keyword_or_uid_strong)
+
+    # Definite FAIL: unreadable thumbnail, OCR number disagrees with form, or OCR looks unrelated to UID.
+    if severe_image:
+        block["status"] = "fail"
+    elif match_user is False:
+        block["status"] = "fail"
+    elif positive_evidence:
+        block["status"] = "pass"
+    elif st == "fail" and stripped and len(stripped) >= 100 and not aadhaar_cands and _digits_in_text(stripped) < 14:
+        # Long text blocks with almost no digits rarely look like card scans → likely wrong upload.
+        block["status"] = "fail"
+        issues.append("likely_not_an_id_document_by_ocr_shape")
+    elif st == "fail" and len(stripped) <= 26:
+        # Too little OCR to judge authenticity — keep ambiguous.
         block["status"] = "warn"
     else:
-        # Tesseract often misses English keywords and mis-reads digits on real Aadhaar photos.
-        # Step 1 is advisory — never FAIL a present image solely on weak OCR.
-        # Only FAIL when dimensions are unusably small (thumbnails); blur/size hints stay as warnings.
-        severe = "resolution_too_small" in issues or any(
-            str(i).startswith("invalid_image") for i in issues
-        )
-        block["status"] = "fail" if severe else "warn"
+        block["status"] = "warn"
 
     if issues:
         block["issues"] = issues
@@ -289,8 +313,24 @@ def _score_fssai_block(raw: bytes | None) -> dict[str, Any]:
     block["keywordsFound"] = kw_found
     block["fssaiLikeNumbers"] = nums
     issues = list(metrics.get("issues") or [])
-    if len(kw_found) >= 1 or nums:
-        block["status"] = "pass" if (kw_found or nums) else "warn"
+    stripped = text.strip()
+    digitish = _digits_in_text(stripped)
+
+    severe_image = "resolution_too_small" in issues or any(str(i).startswith("invalid_image") for i in issues)
+    if severe_image:
+        block["status"] = "fail"
+    elif kw_found or nums:
+        block["status"] = "pass"
+    elif len(stripped) >= 52 and digitish >= 12:
+        # Dense numbers + prose typical of licences even when OCR misses "FSSAI".
+        block["status"] = "pass"
+        issues.append("license_like_text_without_fssai_keyword_match")
+    elif len(stripped) < 14:
+        block["status"] = "fail"
+        issues.append("insufficient_certificate_text_detected")
+    elif len(stripped) >= 100 and digitish < 8:
+        block["status"] = "fail"
+        issues.append("likely_not_a_food_safety_license_by_ocr_shape")
     else:
         block["status"] = "warn"
         issues.append("no_fssai_keywords_or_license_pattern_in_ocr")
@@ -326,10 +366,27 @@ def _score_volunteer_id_proof(
     block["keywordsFound"] = kw_found
     block["idTypeHint"] = volunteer_id_type
     issues = list(metrics.get("issues") or [])
-    if len(text.strip()) < 15 and not kw_found:
+    stripped = text.strip()
+
+    severe_image = "resolution_too_small" in issues or any(str(i).startswith("invalid_image") for i in issues)
+    if severe_image:
+        block["status"] = "fail"
+        if issues:
+            block["issues"] = issues
+        return block
+
+    if len(stripped) < 14 and not kw_found:
         issues.append("little_ocr_text")
-    if len(kw_found) >= 1 or len(text.strip()) > 40:
-        block["status"] = "pass" if kw_found else "warn"
+        block["status"] = "fail"
+    elif len(kw_found) >= 1:
+        block["status"] = "pass"
+    elif len(stripped) >= 52:
+        # Regional-language ID cards often omit English NGO keywords — long OCR still suggests a document scan.
+        block["status"] = "pass"
+        issues.append("id_proof_keyword_miss_rely_on_manual_review")
+    elif len(stripped) >= 100 and _digits_in_text(stripped) < 6:
+        block["status"] = "fail"
+        issues.append("unlikely_id_proof_by_ocr_shape")
     else:
         block["status"] = "warn"
     if issues:
@@ -416,7 +473,8 @@ def build_verification_report_for_user(user: Any) -> dict[str, Any]:
         step1 = _rollup_status([front.get("status", "warn"), back.get("status", "warn"), cert.get("status", "warn")])
         summary = (
             "Donor: Aadhaar (front/back) + food-safety/FSSAI certificate pre-check. "
-            "Review OCR samples and flags; Step 2 is your manual approval."
+            "PASS/FAIL reflects OCR consistency (not cryptographic proof). "
+            "Review samples in Step 2 before approval."
         )
         return {
             "version": 1,
@@ -442,8 +500,8 @@ def build_verification_report_for_user(user: Any) -> dict[str, Any]:
 
     step1 = _rollup_status([num_block.get("status", "warn"), id_block.get("status", "warn")])
     summary = (
-        "Volunteer: Aadhaar number checksum + ID proof (NGO / NSS / other) pre-check. "
-        "Aadhaar card images are not collected in this app — only typed number + ID scan."
+        "Volunteer: typed Aadhaar checksum + NGO / NSS / ID scan pre-check using OCR rules. "
+        "PASS/FAIL reflects form and scan consistency—not proof against forged images."
     )
     return {
         "version": 1,
