@@ -26,7 +26,13 @@ export default function DonorDonations() {
   useEffect(() => {
     (async () => {
       setLoading(true);
-      setList((await api.listDonations({ q, status })) as Donation[]);
+      const data = (await api.listDonations({ q, status })) as Donation[];
+      setList(
+        data.sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+        ),
+      );
       setLoading(false);
     })();
   }, [q, status]);
@@ -65,12 +71,18 @@ export default function DonorDonations() {
       </div>
 
       {loading ? (
-        <p className="py-8 text-center text-sm text-muted-foreground">Loading…</p>
+        <p className="py-8 text-center text-sm text-muted-foreground">
+          Loading…
+        </p>
       ) : list.length === 0 ? (
         <div className="rounded-2xl bg-white p-10 text-center shadow-lg shadow-black/5 ring-1 ring-black/5">
           <span className="mb-4 block text-6xl">🔍</span>
-          <p className="text-base font-semibold text-foreground">No donations found</p>
-          <p className="mt-2 text-sm text-muted-foreground">Try adjusting your search or filters.</p>
+          <p className="text-base font-semibold text-foreground">
+            No donations found
+          </p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Try adjusting your search or filters.
+          </p>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">

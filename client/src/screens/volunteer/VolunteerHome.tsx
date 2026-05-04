@@ -17,8 +17,16 @@ export default function VolunteerHome() {
   useEffect(() => {
     (async () => {
       setLoading(true);
-      const data = (await api.listDonations({ status: "PENDING", q: search })) as Donation[];
-      setList(data);
+      const data = (await api.listDonations({
+        status: "PENDING",
+        q: search,
+      })) as Donation[];
+      setList(
+        data.sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+        ),
+      );
       setLoading(false);
     })();
   }, [search]);
@@ -52,18 +60,27 @@ export default function VolunteerHome() {
 
       {/* Available donations */}
       <div>
-        <h2 className="mb-4 text-lg font-bold tracking-tight text-foreground">Available now</h2>
+        <h2 className="mb-4 text-lg font-bold tracking-tight text-foreground">
+          Available now
+        </h2>
         {loading ? (
           <div className="space-y-4">
             {[1, 2].map((i) => (
-              <div key={i} className="h-48 animate-pulse rounded-2xl bg-white shadow-sm ring-1 ring-black/5" />
+              <div
+                key={i}
+                className="h-48 animate-pulse rounded-2xl bg-white shadow-sm ring-1 ring-black/5"
+              />
             ))}
           </div>
         ) : list.length === 0 ? (
           <div className="rounded-2xl bg-white p-10 text-center shadow-lg shadow-black/5 ring-1 ring-black/5">
             <span className="mb-4 block text-6xl">🤝</span>
-            <p className="text-base font-semibold text-foreground">Nothing available yet</p>
-            <p className="mt-2 text-sm text-muted-foreground">Check back soon or browse all pickups.</p>
+            <p className="text-base font-semibold text-foreground">
+              Nothing available yet
+            </p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Check back soon or browse all pickups.
+            </p>
             <Button
               className="mt-6 rounded-xl font-semibold shadow-md shadow-primary/20"
               onClick={() => nav("/volunteer/pickups")}

@@ -185,153 +185,157 @@ export default function VolunteerTasks() {
           onClick={() => !deliverSubmitting && setDeliverTaskId(null)}
         >
           <Card
-            className="w-full max-w-md"
+            className="w-full sm:max-w-md max-h-[70vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
-            <CardContent className="p-4 space-y-4">
-              <h3 className="font-semibold text-lg">
-                Record delivery – end user details
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                Add recipient details. They will receive an email/SMS with a
-                feedback link (provide at least email or phone).
-              </p>
-              {deliverError && (
-                <p className="text-sm text-destructive">{deliverError}</p>
-              )}
-              <div className="grid gap-3">
-                <div>
-                  <label className="text-xs text-muted-foreground">
-                    Name *
-                  </label>
-                  <Input
-                    value={deliverForm.name}
-                    onChange={(e) =>
-                      setDeliverForm((f) => ({ ...f, name: e.target.value }))
-                    }
-                    placeholder="Recipient name"
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-muted-foreground">
-                    Age (optional)
-                  </label>
-                  <Input
-                    type="number"
-                    min={0}
-                    max={150}
-                    value={deliverForm.age}
-                    onChange={(e) =>
-                      setDeliverForm((f) => ({ ...f, age: e.target.value }))
-                    }
-                    placeholder="Age"
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-muted-foreground">
-                    Address *
-                  </label>
-                  <Input
-                    value={deliverForm.address}
-                    onChange={(e) =>
-                      setDeliverForm((f) => ({ ...f, address: e.target.value }))
-                    }
-                    placeholder="Delivery address"
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-muted-foreground">
-                    Email (for feedback link)
-                  </label>
-                  <Input
-                    type="email"
-                    value={deliverForm.email}
-                    onChange={(e) =>
-                      setDeliverForm((f) => ({ ...f, email: e.target.value }))
-                    }
-                    placeholder="email@example.com"
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-muted-foreground">
-                    Phone (for feedback link)
-                  </label>
-                  <Input
-                    type="tel"
-                    value={deliverForm.phone}
-                    onChange={(e) =>
-                      setDeliverForm((f) => ({ ...f, phone: e.target.value }))
-                    }
-                    placeholder="Phone number"
-                    className="mt-1"
-                  />
-                </div>
-              </div>
-              <div className="flex gap-2 justify-end pt-2">
-                <Button
-                  variant="secondary"
-                  onClick={() => !deliverSubmitting && setDeliverTaskId(null)}
-                  disabled={deliverSubmitting}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  disabled={
-                    deliverSubmitting ||
-                    !deliverForm.name.trim() ||
-                    !deliverForm.address.trim() ||
-                    (!deliverForm.email.trim() && !deliverForm.phone.trim())
-                  }
-                  onClick={async () => {
-                    if (!deliverTaskId) return;
-                    setDeliverSubmitting(true);
-                    setDeliverError(null);
-                    try {
-                      const res: DeliverTaskResponse = await api.deliverTask(
-                        deliverTaskId,
-                        {
-                          name: deliverForm.name.trim(),
-                          age: deliverForm.age
-                            ? parseInt(deliverForm.age, 10)
-                            : undefined,
-                          address: deliverForm.address.trim(),
-                          email: deliverForm.email.trim() || undefined,
-                          phone: deliverForm.phone.trim() || undefined,
-                        },
-                      );
-                      setDeliverTaskId(null);
-                      setDeliverForm(emptyDeliverForm);
-                      if (res?.feedbackUrl) setLastFeedbackUrl(res.feedbackUrl);
-                      if (res.emailAttempted && res.emailSent === false) {
-                        setLastDeliveryNotice(
-                          res.emailError
-                            ? `Delivery saved, but email failed: ${res.emailError}`
-                            : "Delivery saved, but feedback email could not be sent.",
-                        );
-                      } else {
-                        setLastDeliveryNotice(null);
+            <div className="overflow-y-auto flex-1">
+              <CardContent className="p-4 space-y-4">
+                <h3 className="font-semibold text-lg">
+                  Record delivery – end user details
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Add recipient details. They will receive an email/SMS with a
+                  feedback link (provide at least email or phone).
+                </p>
+                {deliverError && (
+                  <p className="text-sm text-destructive">{deliverError}</p>
+                )}
+                <div className="grid gap-3">
+                  <div>
+                    <label className="text-xs text-muted-foreground">
+                      Name *
+                    </label>
+                    <Input
+                      value={deliverForm.name}
+                      onChange={(e) =>
+                        setDeliverForm((f) => ({ ...f, name: e.target.value }))
                       }
-                      load();
-                    } catch (e: unknown) {
-                      setDeliverError(
-                        e instanceof Error
-                          ? e.message
-                          : "Failed to submit. Try again.",
+                      placeholder="Recipient name"
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-muted-foreground">
+                      Age (optional)
+                    </label>
+                    <Input
+                      type="number"
+                      min={0}
+                      max={150}
+                      value={deliverForm.age}
+                      onChange={(e) =>
+                        setDeliverForm((f) => ({ ...f, age: e.target.value }))
+                      }
+                      placeholder="Age"
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-muted-foreground">
+                      Address *
+                    </label>
+                    <Input
+                      value={deliverForm.address}
+                      onChange={(e) =>
+                        setDeliverForm((f) => ({
+                          ...f,
+                          address: e.target.value,
+                        }))
+                      }
+                      placeholder="Delivery address"
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-muted-foreground">
+                      Email (for feedback link)
+                    </label>
+                    <Input
+                      type="email"
+                      value={deliverForm.email}
+                      onChange={(e) =>
+                        setDeliverForm((f) => ({ ...f, email: e.target.value }))
+                      }
+                      placeholder="email@example.com"
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-muted-foreground">
+                      Phone (for feedback link)
+                    </label>
+                    <Input
+                      type="tel"
+                      value={deliverForm.phone}
+                      onChange={(e) =>
+                        setDeliverForm((f) => ({ ...f, phone: e.target.value }))
+                      }
+                      placeholder="Phone number"
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </div>
+            <CardContent className="p-2 flex flex-col md:flex-row gap-2 justify-end border-t md:p-4">
+              <Button
+                variant="secondary"
+                onClick={() => !deliverSubmitting && setDeliverTaskId(null)}
+                disabled={deliverSubmitting}
+                className="w-full md:w-auto"
+              >
+                Cancel
+              </Button>
+              <Button
+                disabled={
+                  deliverSubmitting ||
+                  !deliverForm.name.trim() ||
+                  !deliverForm.address.trim() ||
+                  (!deliverForm.email.trim() && !deliverForm.phone.trim())
+                }
+                onClick={async () => {
+                  if (!deliverTaskId) return;
+                  setDeliverSubmitting(true);
+                  setDeliverError(null);
+                  try {
+                    const res: DeliverTaskResponse = await api.deliverTask(
+                      deliverTaskId,
+                      {
+                        name: deliverForm.name.trim(),
+                        age: deliverForm.age
+                          ? parseInt(deliverForm.age, 10)
+                          : undefined,
+                        address: deliverForm.address.trim(),
+                        email: deliverForm.email.trim() || undefined,
+                        phone: deliverForm.phone.trim() || undefined,
+                      },
+                    );
+                    setDeliverTaskId(null);
+                    setDeliverForm(emptyDeliverForm);
+                    if (res?.feedbackUrl) setLastFeedbackUrl(res.feedbackUrl);
+                    if (res.emailAttempted && res.emailSent === false) {
+                      setLastDeliveryNotice(
+                        res.emailError
+                          ? `Delivery saved, but email failed: ${res.emailError}`
+                          : "Delivery saved, but feedback email could not be sent.",
                       );
-                    } finally {
-                      setDeliverSubmitting(false);
+                    } else {
+                      setLastDeliveryNotice(null);
                     }
-                  }}
-                >
-                  {deliverSubmitting
-                    ? "Submitting…"
-                    : "Submit & mark delivered"}
-                </Button>
-              </div>
+                    load();
+                  } catch (e: unknown) {
+                    setDeliverError(
+                      e instanceof Error
+                        ? e.message
+                        : "Failed to submit. Try again.",
+                    );
+                  } finally {
+                    setDeliverSubmitting(false);
+                  }
+                }}
+              >
+                {deliverSubmitting ? "Submitting…" : "Submit & mark delivered"}
+              </Button>
             </CardContent>
           </Card>
         </div>

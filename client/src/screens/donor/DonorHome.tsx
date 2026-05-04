@@ -8,7 +8,14 @@ import { Plus, Search } from "lucide-react";
 import { GradientHeader } from "@/components/gradient-header/GradientHeader";
 import { DonationCard } from "@/components/donation-cards/DonationCard";
 
-const CATEGORIES = ["All", "Cooked Meals", "Groceries", "Bakery", "Fruits", "Mixed"] as const;
+const CATEGORIES = [
+  "All",
+  "Cooked Meals",
+  "Groceries",
+  "Bakery",
+  "Fruits",
+  "Mixed",
+] as const;
 
 export default function DonorHome() {
   const nav = useNavigate();
@@ -21,7 +28,12 @@ export default function DonorHome() {
     (async () => {
       setLoading(true);
       const data = (await api.listDonations()) as Donation[];
-      setDonations(data);
+      setDonations(
+        data.sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+        ),
+      );
       setLoading(false);
     })();
   }, []);
@@ -34,7 +46,7 @@ export default function DonorHome() {
         (d) =>
           d.category.toLowerCase().includes(q) ||
           d.pickupLocation.label.toLowerCase().includes(q) ||
-          d.items.some((i) => i.name.toLowerCase().includes(q))
+          d.items.some((i) => i.name.toLowerCase().includes(q)),
       );
     }
     if (category !== "All") {
@@ -45,7 +57,7 @@ export default function DonorHome() {
 
   const stats = useMemo(() => {
     const active = donations.filter((d) =>
-      ["PENDING", "ASSIGNED", "PICKED_UP"].includes(d.status)
+      ["PENDING", "ASSIGNED", "PICKED_UP"].includes(d.status),
     ).length;
     const delivered = donations.filter((d) => d.status === "DELIVERED").length;
     return { active, delivered };
@@ -81,7 +93,18 @@ export default function DonorHome() {
       {/* Category chips - horizontal scroll with emoji */}
       <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
         {CATEGORIES.map((c) => {
-          const emoji = c === "All" ? "✨" : c === "Cooked Meals" ? "🍛" : c === "Groceries" ? "🛒" : c === "Bakery" ? "🥐" : c === "Fruits" ? "🍎" : "🥗";
+          const emoji =
+            c === "All"
+              ? "✨"
+              : c === "Cooked Meals"
+                ? "🍛"
+                : c === "Groceries"
+                  ? "🛒"
+                  : c === "Bakery"
+                    ? "🥐"
+                    : c === "Fruits"
+                      ? "🍎"
+                      : "🥗";
           const isActive = category === c;
           return (
             <button
@@ -109,33 +132,48 @@ export default function DonorHome() {
             </div>
             <p className="text-sm font-medium text-muted-foreground">Active</p>
           </div>
-          <p className="mt-3 text-2xl font-extrabold tracking-tight text-foreground">{stats.active}</p>
+          <p className="mt-3 text-2xl font-extrabold tracking-tight text-foreground">
+            {stats.active}
+          </p>
         </div>
         <div className="rounded-2xl bg-white p-4 shadow-lg shadow-black/5 ring-1 ring-black/5">
           <div className="flex items-center gap-2">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
               <span className="text-lg">✓</span>
             </div>
-            <p className="text-sm font-medium text-muted-foreground">Delivered</p>
+            <p className="text-sm font-medium text-muted-foreground">
+              Delivered
+            </p>
           </div>
-          <p className="mt-3 text-2xl font-extrabold tracking-tight text-foreground">{stats.delivered}</p>
+          <p className="mt-3 text-2xl font-extrabold tracking-tight text-foreground">
+            {stats.delivered}
+          </p>
         </div>
       </div>
 
       {/* Donation cards */}
       <div>
-        <h2 className="mb-4 text-lg font-bold tracking-tight text-foreground">Recent donations</h2>
+        <h2 className="mb-4 text-lg font-bold tracking-tight text-foreground">
+          Recent donations
+        </h2>
         {loading ? (
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-48 animate-pulse rounded-2xl bg-white shadow-sm ring-1 ring-black/5" />
+              <div
+                key={i}
+                className="h-48 animate-pulse rounded-2xl bg-white shadow-sm ring-1 ring-black/5"
+              />
             ))}
           </div>
         ) : filtered.length === 0 ? (
           <div className="rounded-2xl bg-white p-10 text-center shadow-lg shadow-black/5 ring-1 ring-black/5">
             <span className="mb-4 block text-6xl">📦</span>
-            <p className="text-base font-semibold text-foreground">No donations yet</p>
-            <p className="mt-2 text-sm text-muted-foreground">Create your first donation to get started.</p>
+            <p className="text-base font-semibold text-foreground">
+              No donations yet
+            </p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Create your first donation to get started.
+            </p>
             <Button
               className="mt-6 rounded-xl font-semibold shadow-md shadow-primary/20"
               onClick={() => nav("/donor/create")}

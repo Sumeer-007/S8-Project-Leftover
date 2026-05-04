@@ -44,7 +44,10 @@ export default function FeedbackPage() {
     setSubmitting(true);
     setError(null);
     try {
-      await api.feedback.submit(token, { rating, comment: comment.trim() || undefined });
+      await api.feedback.submit(token, {
+        rating,
+        comment: comment.trim() || undefined,
+      });
       setSubmitted(true);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to submit. Try again.");
@@ -81,9 +84,12 @@ export default function FeedbackPage() {
       <div className="min-h-screen flex items-center justify-center p-4 bg-muted/30">
         <Card className="max-w-md w-full">
           <CardContent className="p-6 text-center space-y-2">
-            <h1 className="text-xl font-semibold text-emerald-700">Thank you!</h1>
+            <h1 className="text-xl font-semibold text-emerald-700">
+              Thank you!
+            </h1>
             <p className="text-muted-foreground">
-              Your feedback has been recorded. We appreciate you taking the time to help us improve.
+              Your feedback has been recorded. We appreciate you taking the time
+              to help us improve.
             </p>
           </CardContent>
         </Card>
@@ -98,14 +104,19 @@ export default function FeedbackPage() {
           <div>
             <h1 className="text-xl font-semibold">Share your feedback</h1>
             <p className="text-sm text-muted-foreground mt-1">
-              <strong>{info?.volunteerName}</strong> delivered food from <strong>{info?.donorName}</strong>.
-              How was the experience?
+              <strong>{info?.volunteerName}</strong> delivered food from{" "}
+              <strong>{info?.donorName}</strong>. How was the experience?
             </p>
           </div>
 
           <div>
-            <label className="text-sm font-medium">Food quality & service (1–5 stars) *</label>
-            <div className="flex gap-1 mt-2" onMouseLeave={() => setHoverRating(0)}>
+            <label className="text-sm font-medium">
+              Food quality & service (1–5 stars) *
+            </label>
+            <div
+              className="flex gap-1 mt-2"
+              onMouseLeave={() => setHoverRating(0)}
+            >
               {[1, 2, 3, 4, 5].map((value) => (
                 <button
                   key={value}
@@ -133,7 +144,9 @@ export default function FeedbackPage() {
           </div>
 
           <div>
-            <label className="text-sm font-medium">Additional comments (optional)</label>
+            <label className="text-sm font-medium">
+              Additional comments (optional)
+            </label>
             <Textarea
               value={comment}
               onChange={(e) => setComment(e.target.value)}
