@@ -1,0 +1,61 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: leftoverlink-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: leftoverlink
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  server:
+    build:
+      context: ./server
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/leftoverlink
+    depends_on:
+      - postgres
+
+  admin-server:
+    build:
+      context: ./Admin_Dashboard/server
+    ports:
+      - "8001:8001"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/leftoverlink
+      - ADMIN_CORS_ORIGINS=*
+    depends_on:
+      - postgres
+
+  client:
+    build:
+      context: ./client
+      dockerfile: ../client.Dockerfile
+    environment:
+      - VITE_API_BASE=https://lunaglobal.org/api
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - server
+
+  admin:
+    build:
+      context: ./Admin_Dashboard
+      dockerfile: ../admin.Dockerfile
+    environment:
+      - VITE_ADMIN_API_BASE=http://13.233.84.240:8001
+    ports:
+      - "8080:80"
+    depends_on:
+      - admin-server
+
+volumes:
+  pgdata:

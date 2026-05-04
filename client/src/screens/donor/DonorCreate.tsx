@@ -34,6 +34,17 @@ async function reverseGeocode(lat: number, lng: number) {
   return (await res.json()) as any;
 }
 
+function getLabelFromReverseGeocode(result: any, fallback: string) {
+  if (!result) return fallback;
+  if (typeof result.name === "string" && result.name.trim().length > 0) {
+    return result.name;
+  }
+  if (typeof result.display_name === "string" && result.display_name.trim().length > 0) {
+    return result.display_name.split(",")[0];
+  }
+  return fallback;
+}
+
 type Step = 1 | 2;
 
 export default function DonorCreate() {
@@ -46,10 +57,7 @@ export default function DonorCreate() {
   const [notes, setNotes] = useState(
     "Packed & sealed. Please bring insulated bag.",
   );
-  const [items, setItems] = useState<DonationItem[]>([
-    { name: "Veg biryani", quantity: 12, unit: "plates" },
-    { name: "Raita packs", quantity: 10, unit: "packs" },
-  ]);
+  const [items, setItems] = useState<DonationItem[]>([]);
 
   function updateItem(i: number, patch: Partial<DonationItem>) {
     setItems((prev) =>
@@ -108,7 +116,8 @@ export default function DonorCreate() {
             if (cancelled) return;
             const address =
               rev?.display_name ?? `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-            setPickupLocation((p) => ({ ...p, address }));
+            const label = getLabelFromReverseGeocode(rev, "Current location");
+            setPickupLocation((p) => ({ ...p, address, label }));
           } catch {
             if (cancelled) return;
             setPickupLocation((p) => ({
@@ -439,8 +448,14 @@ export default function DonorCreate() {
                     nav("/auth/login");
                     return;
                   }
-                  const donor = user.donor as { fullName?: string; full_name?: string; phone?: string } | undefined;
-                  const donorName = donor?.fullName ?? donor?.full_name ?? user.username ?? "Donor";
+                  const donor = user.donor as
+                    | { fullName?: string; full_name?: string; phone?: string }
+                    | undefined;
+                  const donorName =
+                    donor?.fullName ??
+                    donor?.full_name ??
+                    user.username ??
+                    "Donor";
                   const donorPhone = donor?.phone ?? "";
                   const d = await api.createDonation({
                     donorName,

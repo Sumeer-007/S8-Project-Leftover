@@ -46,7 +46,7 @@ export default function VolunteerPickups() {
     <div className="space-y-4">
       <GradientHeader
         title="Pickups"
-        subtitle="Only Pending donations show here (demo)."
+        subtitle="Only Pending donations show here."
       />
 
       <div className="relative">

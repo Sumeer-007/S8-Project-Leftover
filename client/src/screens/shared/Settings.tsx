@@ -34,7 +34,9 @@ export default function Settings() {
             </div>
             <div className="min-w-0 flex-1">
               <p className="font-semibold text-foreground">Log out</p>
-              <p className="text-sm text-muted-foreground">Sign out of your account</p>
+              <p className="text-sm text-muted-foreground">
+                Sign out of your account
+              </p>
             </div>
             <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
           </button>
@@ -58,8 +60,12 @@ export default function Settings() {
               <Database className="h-5 w-5" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="font-semibold text-foreground">Reset donations & tasks</p>
-              <p className="text-sm text-muted-foreground">Clear demo data, keep your account</p>
+              <p className="font-semibold text-foreground">
+                Reset donations & tasks
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Clear data, keep your account
+              </p>
             </div>
             <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
           </button>
@@ -86,7 +92,9 @@ export default function Settings() {
             </div>
             <div className="min-w-0 flex-1">
               <p className="font-semibold text-red-700">Reset everything</p>
-              <p className="text-sm text-red-600/80">Clear all data including auth and sign you out</p>
+              <p className="text-sm text-red-600/80">
+                Clear all data including auth and sign you out
+              </p>
             </div>
             <ChevronRight className="h-5 w-5 shrink-0 text-red-400" />
           </button>
